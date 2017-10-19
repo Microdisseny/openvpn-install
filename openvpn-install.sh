@@ -80,7 +80,7 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 		echo "   4) Exit"
 		read -p "Select an option [1-4]: " option
 		case $option in
-			1) 
+			1)
 			echo ""
 			echo "Tell me a name for the client certificate"
 			echo "Please, use one word only, no special characters"
@@ -125,7 +125,7 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			echo "Certificate for client $CLIENT revoked"
 			exit
 			;;
-			3) 
+			3)
 			echo ""
 			read -p "Do you really want to remove OpenVPN? [y/n]: " -e -i n REMOVE
 			if [[ "$REMOVE" = 'y' ]]; then
@@ -194,10 +194,10 @@ else
 	echo "   2) TCP"
 	read -p "Protocol [1-2]: " -e -i 1 PROTOCOL
 	case $PROTOCOL in
-		1) 
+		1)
 		PROTOCOL=udp
 		;;
-		2) 
+		2)
 		PROTOCOL=tcp
 		;;
 	esac
@@ -212,7 +212,8 @@ else
 	echo "   4) NTT"
 	echo "   5) Hurricane Electric"
 	echo "   6) Verisign"
-	read -p "DNS [1-6]: " -e -i 1 DNS
+	echo "   7) None"
+	read -p "DNS [1-7]: " -e -i 1 DNS
 	echo ""
 	echo "Finally, tell me your name for the client certificate"
 	echo "Please, use one word only, no special characters"
@@ -271,35 +272,37 @@ tls-auth ta.key 0
 topology subnet
 server 10.8.0.0 255.255.255.0
 ifconfig-pool-persist ipp.txt" > /etc/openvpn/server.conf
-	echo 'push "redirect-gateway def1 bypass-dhcp"' >> /etc/openvpn/server.conf
-	# DNS
-	case $DNS in
-		1) 
-		# Obtain the resolvers from resolv.conf and use them for OpenVPN
-		grep -v '#' /etc/resolv.conf | grep 'nameserver' | grep -E -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | while read line; do
-			echo "push \"dhcp-option DNS $line\"" >> /etc/openvpn/server.conf
-		done
-		;;
-		2) 
-		echo 'push "dhcp-option DNS 8.8.8.8"' >> /etc/openvpn/server.conf
-		echo 'push "dhcp-option DNS 8.8.4.4"' >> /etc/openvpn/server.conf
-		;;
-		3)
-		echo 'push "dhcp-option DNS 208.67.222.222"' >> /etc/openvpn/server.conf
-		echo 'push "dhcp-option DNS 208.67.220.220"' >> /etc/openvpn/server.conf
-		;;
-		4) 
-		echo 'push "dhcp-option DNS 129.250.35.250"' >> /etc/openvpn/server.conf
-		echo 'push "dhcp-option DNS 129.250.35.251"' >> /etc/openvpn/server.conf
-		;;
-		5) 
-		echo 'push "dhcp-option DNS 74.82.42.42"' >> /etc/openvpn/server.conf
-		;;
-		6) 
-		echo 'push "dhcp-option DNS 64.6.64.6"' >> /etc/openvpn/server.conf
-		echo 'push "dhcp-option DNS 64.6.65.6"' >> /etc/openvpn/server.conf
-		;;
-	esac
+	if [[ $DNS != 7 ]]; then
+		echo 'push "redirect-gateway def1 bypass-dhcp"' >> /etc/openvpn/server.conf
+		# DNS
+		case $DNS in
+			1)
+			# Obtain the resolvers from resolv.conf and use them for OpenVPN
+			grep -v '#' /etc/resolv.conf | grep 'nameserver' | grep -E -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | while read line; do
+				echo "push \"dhcp-option DNS $line\"" >> /etc/openvpn/server.conf
+			done
+			;;
+			2)
+			echo 'push "dhcp-option DNS 8.8.8.8"' >> /etc/openvpn/server.conf
+			echo 'push "dhcp-option DNS 8.8.4.4"' >> /etc/openvpn/server.conf
+			;;
+			3)
+			echo 'push "dhcp-option DNS 208.67.222.222"' >> /etc/openvpn/server.conf
+			echo 'push "dhcp-option DNS 208.67.220.220"' >> /etc/openvpn/server.conf
+			;;
+			4)
+			echo 'push "dhcp-option DNS 129.250.35.250"' >> /etc/openvpn/server.conf
+			echo 'push "dhcp-option DNS 129.250.35.251"' >> /etc/openvpn/server.conf
+			;;
+			5)
+			echo 'push "dhcp-option DNS 74.82.42.42"' >> /etc/openvpn/server.conf
+			;;
+			6)
+			echo 'push "dhcp-option DNS 64.6.64.6"' >> /etc/openvpn/server.conf
+			echo 'push "dhcp-option DNS 64.6.65.6"' >> /etc/openvpn/server.conf
+			;;
+		esac
+	fi
 	echo "keepalive 10 120
 cipher AES-256-CBC
 comp-lzo
